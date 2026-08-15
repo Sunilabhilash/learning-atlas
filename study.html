@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Quest</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:linear-gradient(135deg,#667EEA 0%,#9F6BD6 100%); min-height:100vh; color:white; overflow-x:hidden; touch-action:pan-y; }
+.screen { padding:24px 20px; min-height:100vh; display:flex; flex-direction:column; align-items:center; text-align:center; }
+h1 { font-size:44px; margin-bottom:8px; text-shadow:2px 2px 8px rgba(0,0,0,0.2); }
+.subtitle { font-size:19px; opacity:0.95; margin-bottom:28px; }
+.big-btn { background:white; color:#7C4DBE; border:none; border-radius:50px; padding:20px 40px; font-size:22px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); margin-bottom:16px; min-width:280px; }
+.big-btn:active { transform:scale(0.97); }
+.ghost-btn { align-self:flex-start; background:rgba(255,255,255,0.25); color:white; border:none; border-radius:50px; padding:10px 20px; font-size:17px; cursor:pointer; }
+#home-emoji, #round-emoji, #done-emoji { font-size:110px; margin:10px 0 20px; }
+.round-card { background:rgba(255,255,255,0.18); border-radius:20px; padding:18px 20px; margin-bottom:14px; width:100%; max-width:560px; font-size:19px; text-align:left; }
+#q-meta { font-size:17px; opacity:0.9; margin-top:8px; }
+#q-subject { font-size:22px; font-weight:700; margin-top:4px; }
+#q-text { font-size:27px; line-height:1.35; font-weight:600; margin:26px 0 24px; max-width:640px; }
+#q-options { display:flex; flex-direction:column; gap:12px; width:100%; max-width:560px; }
+.opt { background:white; color:#333; border:none; border-radius:16px; padding:20px 16px; font-size:21px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:transform 0.15s ease; }
+.opt:active { transform:scale(0.96); }
+.opt.correct { background:#4CAF50; color:white; }
+.opt.wrong { background:#FF5252; color:white; }
+#q-feedback { font-size:26px; font-weight:700; margin-top:18px; min-height:36px; }
+#q-why { font-size:18px; margin-top:8px; opacity:0.95; max-width:560px; line-height:1.4; min-height:24px; }
+#score-line { font-size:26px; margin-bottom:32px; }
+h2 { font-size:38px; margin-bottom:10px; }
+#progress-bar { width:100%; max-width:560px; height:10px; background:rgba(255,255,255,0.25); border-radius:10px; margin-top:14px; overflow:hidden; }
+#progress-fill { height:100%; width:0%; background:white; border-radius:10px; transition:width 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div id="home-screen" class="screen">
+  <div id="home-emoji">🧠</div>
+  <h1>Brain Quest</h1>
+  <p class="subtitle">Ready for this week's challenge?</p>
+  <div class="round-card">✏️ Round 1 — English</div>
+  <div class="round-card">🔢 Round 2 — Maths</div>
+  <div class="round-card">🌱 Round 3 — Who We Are</div>
+  <button id="start-btn" class="big-btn">Start Quest!</button>
+</div>
+
+<div id="round-intro" class="screen" style="display:none;">
+  <div id="round-emoji"></div>
+  <h2 id="round-title"></h2>
+  <p class="subtitle" id="round-sub"></p>
+  <button id="round-go-btn" class="big-btn">Let's go!</button>
+</div>
+
+<div id="q-screen" class="screen" style="display:none;">
+  <button id="q-back-btn" class="ghost-btn">← Back</button>
+  <div id="q-subject"></div>
+  <div id="q-meta"></div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <p id="q-text"></p>
+  <div id="q-options"></div>
+  <div id="q-feedback"></div>
+  <div id="q-why"></div>
+</div>
+
+<div id="round-done" class="screen" style="display:none;">
+  <div id="rd-emoji"></div>
+  <h2 id="rd-title"></h2>
+  <p id="rd-score" class="subtitle"></p>
+  <button id="next-round-btn" class="big-btn">Next Round →</button>
+  <button id="rd-home-btn" class="big-btn">Stop for now</button>
+</div>
+
+<div id="done-screen" class="screen" style="display:none;">
+  <div id="done-emoji"></div>
+  <h2 id="done-title"></h2>
+  <p id="score-line"></p>
+  <button id="again-btn" class="big-btn">Play Again!</button>
+  <button id="done-home-btn" class="big-btn">Finish</button>
+</div>
+
+<script>
+const bank = {
+english: [
+{q:"Which word needs a capital letter?",o:["monday","dog","ball"],a:"monday",w:"Monday is a calendar word — the C in CHIPS!"},
+{q:"Which word needs a capital letter?",o:["tuesday","chair","red"],a:"tuesday",w:"Tuesday is a day — a calendar word!"},
+{q:"Which word needs a capital letter?",o:["friday","tree","jump"],a:"friday",w:"Friday is a day of the week — capital F!"},
+{q:"Which word needs a capital letter?",o:["january","cold","hat"],a:"january",w:"January is a month — a calendar word!"},
+{q:"Which word needs a capital letter?",o:["june","mango","hot"],a:"june",w:"June is a month, so it gets a capital letter."},
+{q:"Which word needs a capital letter?",o:["sunday","day","rest"],a:"sunday",w:"Sunday is a calendar word!"},
+{q:"Which word needs a capital letter?",o:["april","rain","wet"],a:"april",w:"April is a month — capital A!"},
+{q:"Which word needs a capital letter?",o:["august","kite","sky"],a:"august",w:"August is a month — a calendar word!"},
+{q:"Which word needs a capital letter?",o:["wednesday","week","today"],a:"wednesday",w:"Wednesday is a day of the week!"},
+{q:"Which word needs a capital letter?",o:["diwali","cake","lamp"],a:"diwali",w:"Diwali is a celebration — the H in CHIPS!"},
+{q:"Which word needs a capital letter?",o:["holi","colour","water"],a:"holi",w:"Holi is a festival — it needs a capital!"},
+{q:"Which word needs a capital letter?",o:["christmas","gift","star"],a:"christmas",w:"Christmas is a holiday — capital C!"},
+{q:"Which word needs a capital letter?",o:["eid","moon","sweet"],a:"eid",w:"Eid is a celebration — it gets a capital!"},
+{q:"Which one ALWAYS gets a capital letter?",o:["i","me","my"],a:"i",w:"'I' by myself is always a capital — the I in CHIPS!"},
+{q:"'i like to play.' What is wrong?",o:["'i' should be capital I","Nothing","'play' needs a capital"],a:"'i' should be capital I",w:"'I' by itself is always a capital!"},
+{q:"Which is correct?",o:["May I come?","May i come?","may i come?"],a:"May I come?",w:"'I' is always written as a capital letter."},
+{q:"'Ravi and i play.' What needs fixing?",o:["i should be I","Ravi should be ravi","Nothing"],a:"i should be I",w:"'I' is always a capital, even in the middle!"},
+{q:"Which word needs a capital letter?",o:["mumbai","city","big"],a:"mumbai",w:"Mumbai is a place — the P in CHIPS!"},
+{q:"Which word needs a capital letter?",o:["india","country","flag"],a:"india",w:"India is the name of a place — capital I!"},
+{q:"Which word needs a capital letter?",o:["delhi","road","bus"],a:"delhi",w:"Delhi is a city — places get capitals!"},
+{q:"Which word needs a capital letter?",o:["tara","girl","run"],a:"tara",w:"Tara is a person's name — capital T!"},
+{q:"Which word needs a capital letter?",o:["rohan","boy","play"],a:"rohan",w:"Rohan is a name — people get capitals!"},
+{q:"Which word needs a capital letter?",o:["goa","beach","sand"],a:"goa",w:"Goa is a place — capital G!"},
+{q:"Which name needs a capital letter?",o:["rita","aunty","friend"],a:"rita",w:"Rita is a person's name — names get capitals!"},
+{q:"In 'we play in the park', which word needs a capital?",o:["we","play","park"],a:"we",w:"The first word of a sentence gets a capital — the S in CHIPS!"},
+{q:"In 'the dog barks', which word needs a capital?",o:["the","dog","barks"],a:"the",w:"A sentence always starts with a capital letter."},
+{q:"In 'my school is big', which word needs a capital?",o:["my","school","big"],a:"my",w:"The first word starts the sentence — capital M!"},
+{q:"What does the C in CHIPS stand for?",o:["Calendar words","Cat","Cup"],a:"Calendar words",w:"C is for calendar words like Monday and June."},
+{q:"What does the H in CHIPS stand for?",o:["Holiday words","Hat","House"],a:"Holiday words",w:"H is for holidays like Diwali and Eid."},
+{q:"What does the I in CHIPS stand for?",o:["I by myself","Ice","Igloo"],a:"I by myself",w:"When 'I' stands alone, it is always a capital."},
+{q:"What does the P in CHIPS stand for?",o:["People and Places","Pencil","Play"],a:"People and Places",w:"P is for names like Tara and Mumbai."},
+{q:"What does the S in CHIPS stand for?",o:["Start of a sentence","Sun","Sit"],a:"Start of a sentence",w:"Every sentence starts with a capital letter."},
+{q:"CHIPS helps us remember...",o:["when to use capital letters","how to count","how to draw"],a:"when to use capital letters",w:"C-H-I-P-S — five places capitals live!"},
+{q:"'Tara went to Mumbai.' How many capitals are needed?",o:["2","1","3"],a:"2",w:"Tara (person) and Mumbai (place) both need capitals."},
+{q:"'i live in india.' How many capitals are needed?",o:["2","1","0"],a:"2",w:"'I' and 'India' both need capitals!"},
+{q:"'on monday i play.' How many capitals are needed?",o:["3","1","2"],a:"3",w:"On (start), Monday (day), and I — three capitals!"},
+{q:"Which one is a noun?",o:["ball","run","fast"],a:"ball",w:"A ball is a thing — nouns are naming words."},
+{q:"Which noun is a PERSON?",o:["teacher","jump","blue"],a:"teacher",w:"A teacher is a person!"},
+{q:"Which noun is a PLACE?",o:["school","sing","happy"],a:"school",w:"School is a place you go to."},
+{q:"Which noun is an ANIMAL?",o:["tiger","quickly","green"],a:"tiger",w:"A tiger is an animal — nouns name animals too."},
+{q:"Which noun is a THING?",o:["chair","sleepy","dance"],a:"chair",w:"A chair is a thing you can touch."},
+{q:"Which noun is a PERSON?",o:["doctor","eat","small"],a:"doctor",w:"A doctor is a person who helps us."},
+{q:"Which noun is a PLACE?",o:["park","laugh","tall"],a:"park",w:"A park is a place where we play."},
+{q:"Which noun is an ANIMAL?",o:["elephant","soft","walk"],a:"elephant",w:"An elephant is a big animal!"},
+{q:"Which noun is a THING?",o:["book","pretty","hop"],a:"book",w:"A book is a thing we read."},
+{q:"Which one is a noun?",o:["garden","walk","slow"],a:"garden",w:"A garden is a place — a noun!"},
+{q:"Which one is a noun?",o:["baby","cry","loud"],a:"baby",w:"A baby is a person — a noun!"},
+{q:"Which one is a noun?",o:["train","fast","move"],a:"train",w:"A train is a thing — a noun!"},
+{q:"Which one is a noun?",o:["mango","sweet","eat"],a:"mango",w:"A mango is a thing — a delicious noun!"},
+{q:"Which word names something?",o:["table","quick","go"],a:"table",w:"Table is a noun — a naming word."},
+{q:"Which is NOT a noun?",o:["jump","apple","book"],a:"jump",w:"Jump is an action word, not a naming word."},
+{q:"Which is NOT a noun?",o:["sing","dog","cup"],a:"sing",w:"Sing is something you do — not a noun."},
+{q:"Which is NOT a noun?",o:["happy","pen","cat"],a:"happy",w:"Happy is a feeling word, not a naming word."},
+{q:"A noun is a word that names...",o:["a person, place, animal or thing","an action","a colour"],a:"a person, place, animal or thing",w:"Nouns are naming words!"},
+{q:"Delhi is a...",o:["place","person","animal"],a:"place",w:"Delhi is a city — a place!"},
+{q:"A lion is a...",o:["animal","place","thing"],a:"animal",w:"A lion is a wild animal."},
+{q:"A spoon is a...",o:["thing","person","place"],a:"thing",w:"A spoon is a thing we eat with."},
+{q:"Your friend is a...",o:["person","thing","place"],a:"person",w:"Friends are people!"},
+{q:"A cow is a...",o:["animal","place","person"],a:"animal",w:"A cow is an animal that gives us milk."},
+{q:"A beach is a...",o:["place","animal","person"],a:"place",w:"A beach is a place near the sea."},
+{q:"A pencil is a...",o:["thing","person","animal"],a:"thing",w:"A pencil is a thing we write with."},
+{q:"'The cat sat on the mat.' How many nouns?",o:["2","1","3"],a:"2",w:"Cat and mat are both nouns."},
+{q:"'Tara has a red ball.' How many nouns?",o:["2","1","3"],a:"2",w:"Tara and ball are nouns. Red tells us more about the ball."},
+{q:"'The boy eats a mango.' How many nouns?",o:["2","3","1"],a:"2",w:"Boy and mango are the nouns."},
+{q:"'The bird sits on the tree.' How many nouns?",o:["2","1","3"],a:"2",w:"Bird and tree are the nouns."},
+{q:"'My friend lives in Pune.' Which word is a PLACE?",o:["Pune","friend","lives"],a:"Pune",w:"Pune is a city — a place noun!"},
+{q:"Which mark ends this? 'I like mangoes___'",o:["full stop .","question mark ?","comma ,"],a:"full stop .",w:"A telling sentence ends with a full stop."},
+{q:"Which mark ends this? 'What is your name___'",o:["question mark ?","full stop .","comma ,"],a:"question mark ?",w:"An asking sentence ends with a question mark."},
+{q:"Which mark do we use to ask something?",o:["question mark ?","full stop .","comma ,"],a:"question mark ?",w:"Questions end with a question mark!"},
+{q:"A telling sentence ends with a...",o:["full stop","question mark","capital letter"],a:"full stop",w:"Full stops end telling sentences."},
+{q:"Which mark ends this? 'Where is my bag___'",o:["question mark ?","full stop .","comma ,"],a:"question mark ?",w:"'Where' asks a question!"},
+{q:"Which mark ends this? 'The sun is hot___'",o:["full stop .","question mark ?","comma ,"],a:"full stop .",w:"It's telling us something, so — full stop."},
+{q:"Which mark ends this? 'How old are you___'",o:["question mark ?","full stop .","comma ,"],a:"question mark ?",w:"'How' starts a question!"},
+{q:"Which mark ends this? 'I love my family___'",o:["full stop .","question mark ?","comma ,"],a:"full stop .",w:"A telling sentence — full stop!"},
+{q:"Where does a full stop go?",o:["At the end","At the start","In the middle"],a:"At the end",w:"A full stop shows the sentence is finished."},
+{q:"Which mark ends this? 'Do you like ice cream___'",o:["question mark ?","full stop .","comma ,"],a:"question mark ?",w:"'Do you...' is asking — question mark!"},
+{q:"Which mark ends this? 'We play cricket___'",o:["full stop .","question mark ?","comma ,"],a:"full stop .",w:"Telling sentence — full stop."},
+{q:"Which one asks a question?",o:["What is this?","This is a cat.","I like cats."],a:"What is this?",w:"It starts with 'What' and ends with a question mark."},
+{q:"Which one is a telling sentence?",o:["The dog is big.","Is the dog big?","Where is the dog?"],a:"The dog is big.",w:"It tells us something and ends with a full stop."},
+{q:"Which word starts a question?",o:["What","And","The"],a:"What",w:"What, where, how — question words!"},
+{q:"Which word starts a question?",o:["Where","Ball","Red"],a:"Where",w:"'Where' asks about a place."},
+{q:"Which word starts a question?",o:["How","Cat","Run"],a:"How",w:"'How' is a question word."},
+{q:"Which sentence is written correctly?",o:["I am happy.","i am happy.","i am Happy."],a:"I am happy.",w:"'I' is a capital, and the sentence ends with a full stop."},
+{q:"Which sentence is written correctly?",o:["We go to school.","we go to school","we Go to school."],a:"We go to school.",w:"Capital at the start, full stop at the end."},
+{q:"Which sentence is written correctly?",o:["My name is Tara.","my name is tara.","my Name is tara"],a:"My name is Tara.",w:"Capital M to start and capital T for Tara!"},
+{q:"Which is written correctly?",o:["What is your name?","what is your name","What is your name."],a:"What is your name?",w:"Capital W and a question mark!"},
+{q:"Which is a correct sentence?",o:["We eat lunch.","we eat lunch","we eat Lunch."],a:"We eat lunch.",w:"Capital W, full stop at the end."},
+{q:"Which is a correct sentence?",o:["My dog is small.","my dog is small","my Dog is small."],a:"My dog is small.",w:"Start with a capital, end with a full stop."},
+{q:"Which is a correct sentence?",o:["I go to school.","i go to school","I go to school"],a:"I go to school.",w:"Capital I AND a full stop — both needed!"},
+{q:"Which is a correct sentence?",o:["Tara likes mangoes.","tara likes mangoes.","Tara likes Mangoes."],a:"Tara likes mangoes.",w:"Capital T for Tara, small m for mangoes."},
+{q:"'The cat is soft' — what is missing?",o:["A full stop","A capital letter","A question mark"],a:"A full stop",w:"Every telling sentence needs a full stop at the end."},
+{q:"'the boy runs fast.' What is missing at the start?",o:["A capital letter","A full stop","A number"],a:"A capital letter",w:"'the' should be 'The' with a capital T!"},
+{q:"A good sentence needs...",o:["a capital at the start and full stop at the end","only small letters","no spaces"],a:"a capital at the start and full stop at the end",w:"Capital to start, full stop to finish!"},
+{q:"Which is a complete sentence?",o:["The bird flies.","the bird","flies"],a:"The bird flies.",w:"It has a naming part and a doing part."},
+{q:"Which is a complete sentence?",o:["I am six.","am six","six I"],a:"I am six.",w:"It makes full sense on its own."},
+{q:"Put in order: 'school go I to'",o:["I go to school.","School I go to.","Go to I school."],a:"I go to school.",w:"The words must make sense in order!"},
+{q:"Put in order: 'ball the red is'",o:["The ball is red.","Red the ball is.","Is ball the red."],a:"The ball is red.",w:"Start with 'The' and end with a full stop."},
+{q:"Put in order: 'milk I drink'",o:["I drink milk.","Milk drink I.","Drink I milk."],a:"I drink milk.",w:"'I' comes first — and it's a capital!"},
+{q:"Put in order: 'is hot sun the'",o:["The sun is hot.","Sun the hot is.","Hot is the sun."],a:"The sun is hot.",w:"'The sun is hot.' makes sense!"},
+{q:"How does every sentence begin?",o:["With a capital letter","With a small letter","With a full stop"],a:"With a capital letter",w:"Always! That's the S in CHIPS."},
+],
+math: [
+{q:"In the number 34, what is the TENS digit?",o:["3","4","7"],a:"3",w:"34 is 3 tens and 4 ones."},
+{q:"In the number 56, how many TENS?",o:["5","6","11"],a:"5",w:"56 is 5 tens and 6 ones."},
+{q:"In the number 72, how many TENS?",o:["7","2","9"],a:"7",w:"72 is 7 tens and 2 ones."},
+{q:"In the number 89, how many TENS?",o:["8","9","17"],a:"8",w:"89 is 8 tens and 9 ones."},
+{q:"In the number 25, how many TENS?",o:["2","5","7"],a:"2",w:"25 is 2 tens and 5 ones."},
+{q:"In the number 61, how many TENS?",o:["6","1","7"],a:"6",w:"61 is 6 tens and 1 one."},
+{q:"In the number 40, how many TENS?",o:["4","0","40"],a:"4",w:"40 is 4 tens and no ones."},
+{q:"Which number has 9 TENS?",o:["90","9","19"],a:"90",w:"90 is 9 tens and 0 ones."},
+{q:"In the number 34, what is the ONES digit?",o:["4","3","7"],a:"4",w:"34 is 3 tens and 4 ones."},
+{q:"In the number 56, how many ONES?",o:["6","5","1"],a:"6",w:"56 is 5 tens and 6 ones."},
+{q:"In the number 72, how many ONES?",o:["2","7","5"],a:"2",w:"72 is 7 tens and 2 ones."},
+{q:"In the number 89, how many ONES?",o:["9","8","1"],a:"9",w:"89 is 8 tens and 9 ones."},
+{q:"In the number 25, how many ONES?",o:["5","2","0"],a:"5",w:"25 is 2 tens and 5 ones."},
+{q:"In the number 61, how many ONES?",o:["1","6","0"],a:"1",w:"61 is 6 tens and 1 one."},
+{q:"In the number 40, how many ONES?",o:["0","4","40"],a:"0",w:"40 is 4 tens and 0 ones!"},
+{q:"What number is 4 tens and 2 ones?",o:["42","24","46"],a:"42",w:"4 tens = 40, plus 2 = 42."},
+{q:"What number is 7 tens and 0 ones?",o:["70","7","17"],a:"70",w:"7 tens make 70."},
+{q:"What number is 1 ten and 9 ones?",o:["19","91","10"],a:"19",w:"10 + 9 = 19."},
+{q:"What number is 5 tens and 5 ones?",o:["55","50","5"],a:"55",w:"50 + 5 = 55."},
+{q:"What number is 2 tens and 8 ones?",o:["28","82","20"],a:"28",w:"20 + 8 = 28."},
+{q:"What number is 9 tens and 3 ones?",o:["93","39","90"],a:"93",w:"90 + 3 = 93."},
+{q:"What number is 6 tens and 6 ones?",o:["66","60","6"],a:"66",w:"60 + 6 = 66."},
+{q:"What number is 3 tens and 1 one?",o:["31","13","30"],a:"31",w:"30 + 1 = 31."},
+{q:"Which shows the number 23?",o:["2 tens and 3 ones","3 tens and 2 ones","2 ones and 3 tens"],a:"2 tens and 3 ones",w:"23 = 20 + 3!"},
+{q:"45 is 4 tens and how many ones?",o:["5","4","9"],a:"5",w:"40 + 5 = 45."},
+{q:"100 is how many tens?",o:["10","100","1"],a:"10",w:"Ten tens make one hundred!"},
+{q:"30 + 5 = ?",o:["35","305","8"],a:"35",w:"3 tens and 5 ones = 35."},
+{q:"60 + 4 = ?",o:["64","46","10"],a:"64",w:"6 tens and 4 ones = 64."},
+{q:"20 + 9 = ?",o:["29","92","11"],a:"29",w:"2 tens and 9 ones = 29."},
+{q:"50 + 1 = ?",o:["51","15","6"],a:"51",w:"5 tens and 1 one = 51."},
+{q:"90 + 9 = ?",o:["99","18","909"],a:"99",w:"9 tens and 9 ones = 99."},
+{q:"70 + 3 = ?",o:["73","37","10"],a:"73",w:"7 tens and 3 ones = 73."},
+{q:"Which is BIGGER?",o:["54","45"],a:"54",w:"54 has 5 tens. 45 has only 4 tens."},
+{q:"Which is SMALLER?",o:["23","32"],a:"23",w:"23 has 2 tens. 32 has 3 tens."},
+{q:"Which is BIGGER?",o:["87","78"],a:"87",w:"87 has 8 tens — more than 7 tens!"},
+{q:"Which is SMALLER?",o:["16","61"],a:"16",w:"16 has only 1 ten. 61 has 6 tens!"},
+{q:"Which is the BIGGEST?",o:["99","89","91"],a:"99",w:"99 has 9 tens AND 9 ones."},
+{q:"Which is the SMALLEST?",o:["12","21","22"],a:"12",w:"12 has only 1 ten."},
+{q:"Which is BIGGER?",o:["30","29"],a:"30",w:"30 has 3 tens, 29 has only 2 tens."},
+{q:"Which is SMALLER?",o:["49","50"],a:"49",w:"49 comes before 50."},
+{q:"Which is the BIGGEST?",o:["66","65","56"],a:"66",w:"66 beats 65 by one!"},
+{q:"Which is the SMALLEST?",o:["34","40","44"],a:"34",w:"34 has the fewest tens."},
+{q:"What comes after 49?",o:["50","48","59"],a:"50",w:"After 49 the tens go up — 50!"},
+{q:"What comes before 70?",o:["69","71","60"],a:"69",w:"69, then 70."},
+{q:"What comes between 87 and 89?",o:["88","86","90"],a:"88",w:"87, 88, 89 — in order!"},
+{q:"What comes after 29?",o:["30","28","39"],a:"30",w:"29, then 30!"},
+{q:"What comes before 100?",o:["99","101","90"],a:"99",w:"99 is just before 100."},
+{q:"What comes between 54 and 56?",o:["55","53","57"],a:"55",w:"54, 55, 56!"},
+{q:"What comes after 99?",o:["100","98","990"],a:"100",w:"After 99 comes one hundred!"},
+{q:"What comes before 31?",o:["30","32","21"],a:"30",w:"30, then 31."},
+{q:"What comes after 64?",o:["65","63","74"],a:"65",w:"64, then 65."},
+{q:"What comes between 19 and 21?",o:["20","18","22"],a:"20",w:"19, 20, 21!"},
+{q:"5 + 5 = ?",o:["10","55","15"],a:"10",w:"Two fives make ten!"},
+{q:"8 + 7 = ?",o:["15","14","16"],a:"15",w:"8 + 2 makes 10, then 5 more = 15."},
+{q:"12 + 6 = ?",o:["18","16","20"],a:"18",w:"12 and 6 more = 18."},
+{q:"20 + 30 = ?",o:["50","23","60"],a:"50",w:"2 tens + 3 tens = 5 tens!"},
+{q:"10 + 10 + 10 = ?",o:["30","20","111"],a:"30",w:"Three tens make 30."},
+{q:"4 + 3 = ?",o:["7","6","8"],a:"7",w:"4 and 3 more = 7."},
+{q:"6 + 6 = ?",o:["12","10","13"],a:"12",w:"Double 6 is 12!"},
+{q:"9 + 1 = ?",o:["10","8","11"],a:"10",w:"9 and 1 more makes 10."},
+{q:"7 + 8 = ?",o:["15","14","16"],a:"15",w:"7 + 8 = 15."},
+{q:"15 + 4 = ?",o:["19","18","20"],a:"19",w:"15 and 4 more = 19."},
+{q:"11 + 5 = ?",o:["16","15","17"],a:"16",w:"11 and 5 more = 16."},
+{q:"25 + 10 = ?",o:["35","26","30"],a:"35",w:"Adding a ten: 25 becomes 35!"},
+{q:"40 + 20 = ?",o:["60","42","50"],a:"60",w:"4 tens + 2 tens = 6 tens."},
+{q:"30 + 10 = ?",o:["40","31","20"],a:"40",w:"Adding one more ten!"},
+{q:"9 + 9 = ?",o:["18","17","19"],a:"18",w:"Double 9 is 18!"},
+{q:"14 + 3 = ?",o:["17","16","18"],a:"17",w:"14 and 3 more = 17."},
+{q:"2 + 7 = ?",o:["9","8","10"],a:"9",w:"2 and 7 make 9."},
+{q:"10 + 9 = ?",o:["19","18","91"],a:"19",w:"1 ten and 9 ones = 19."},
+{q:"8 + 2 = ?",o:["10","6","82"],a:"10",w:"8 and 2 make a perfect 10!"},
+{q:"Count by tens: 10, 20, 30, ___",o:["40","31","35"],a:"40",w:"Add one ten each time!"},
+{q:"Count by twos: 2, 4, 6, ___",o:["8","7","10"],a:"8",w:"Add 2 each time."},
+{q:"Count by fives: 5, 10, 15, ___",o:["20","16","25"],a:"20",w:"Add 5 each time."},
+{q:"Count by tens: 10, 20, ___, 40",o:["30","25","35"],a:"30",w:"10, 20, 30, 40!"},
+{q:"Count by twos: 2, 4, ___, 8",o:["6","5","7"],a:"6",w:"2, 4, 6, 8!"},
+{q:"Count by fives: 5, ___, 15, 20",o:["10","8","12"],a:"10",w:"5, 10, 15, 20!"},
+{q:"Count by tens: 20, 30, 40, ___",o:["50","41","45"],a:"50",w:"One more ten makes 50."},
+{q:"Count by twos: 6, 8, 10, ___",o:["12","11","14"],a:"12",w:"Keep adding 2!"},
+{q:"Count by fives: 25, 30, 35, ___",o:["40","36","45"],a:"40",w:"Add 5 more!"},
+{q:"Count by tens: 50, 60, 70, ___",o:["80","71","75"],a:"80",w:"One more ten!"},
+{q:"It is 3 o'clock. What time will it be in 1 hour?",o:["4 o'clock","2 o'clock","5 o'clock"],a:"4 o'clock",w:"One hour later is the next number."},
+{q:"It is 7 o'clock. What time will it be in 1 hour?",o:["8 o'clock","6 o'clock","9 o'clock"],a:"8 o'clock",w:"7 plus one hour = 8 o'clock."},
+{q:"How many days are in a week?",o:["7","5","10"],a:"7",w:"Monday to Sunday — 7 days!"},
+{q:"How many days in 2 weeks?",o:["14","9","7"],a:"14",w:"7 + 7 = 14 days."},
+{q:"Which day comes after Monday?",o:["Tuesday","Sunday","Friday"],a:"Tuesday",w:"Monday, then Tuesday!"},
+{q:"Which day comes before Sunday?",o:["Saturday","Monday","Friday"],a:"Saturday",w:"Saturday, then Sunday."},
+{q:"What time comes after 12 o'clock?",o:["1 o'clock","13 o'clock","11 o'clock"],a:"1 o'clock",w:"After 12, the clock starts again at 1!"},
+{q:"Half of 10 is...",o:["5","2","20"],a:"5",w:"5 and 5 make 10."},
+{q:"Half of 8 is...",o:["4","3","16"],a:"4",w:"4 and 4 make 8."},
+{q:"Half of 6 is...",o:["3","2","12"],a:"3",w:"3 and 3 make 6."},
+{q:"Half of 4 is...",o:["2","1","8"],a:"2",w:"2 and 2 make 4."},
+{q:"Tara sleeps 8 hours and plays 2 hours. How many hours is that?",o:["10","6","82"],a:"10",w:"8 + 2 = 10 hours."},
+{q:"School is 5 hours and play is 2 hours. Total hours?",o:["7","3","52"],a:"7",w:"5 + 2 = 7 hours."},
+{q:"Tara has 5 mangoes. She gets 3 more. How many now?",o:["8","2","53"],a:"8",w:"5 + 3 = 8 mangoes!"},
+{q:"There are 6 birds. 2 fly away. How many are left?",o:["4","8","62"],a:"4",w:"6 take away 2 leaves 4."},
+{q:"How many fingers on both your hands?",o:["10","5","20"],a:"10",w:"5 + 5 = 10 fingers!"},
+{q:"7 balloons + 3 balloons = ?",o:["10","4","73"],a:"10",w:"7 + 3 = 10 balloons!"},
+{q:"You have 4 pencils and get 4 more. How many?",o:["8","6","44"],a:"8",w:"4 + 4 = 8 pencils!"},
+{q:"There are 10 sweets. You eat 5. How many left?",o:["5","10","15"],a:"5",w:"10 take away 5 leaves 5."},
+],
+uoi: [
+{q:"Which is a healthy breakfast?",o:["Apple and milk 🍎","Chocolate bar 🍫","Fizzy drink 🥤"],a:"Apple and milk 🍎",w:"Fruit and milk give your body energy to grow."},
+{q:"Which drink is the healthiest?",o:["Water 💧","Cola","Sugary juice"],a:"Water 💧",w:"Water keeps your whole body working well."},
+{q:"Which is a healthy snack?",o:["Fruit 🍌","Candy 🍬","Chips 🍟"],a:"Fruit 🍌",w:"Fruit gives energy without too much sugar."},
+{q:"Which one is a 'sometimes' food?",o:["Chips","Fruit","Dal"],a:"Chips",w:"Chips are a treat, not an everyday food."},
+{q:"Which one is an 'everyday' food?",o:["Vegetables","Candy","Cola"],a:"Vegetables",w:"Vegetables help your body every single day!"},
+{q:"Which food gives you energy?",o:["Rice and bread","Only sweets","Only water"],a:"Rice and bread",w:"Grains are fuel for your body."},
+{q:"Fruits and vegetables help you...",o:["stay healthy","get sick","feel tired"],a:"stay healthy",w:"They have vitamins that protect your body."},
+{q:"Too much sugar is bad for your...",o:["teeth","hair","toes"],a:"teeth",w:"Sugar can give you cavities. Brush well!"},
+{q:"Milk helps make your bones...",o:["strong","soft","tiny"],a:"strong",w:"Milk has calcium for strong bones and teeth!"},
+{q:"Which meal starts your day?",o:["Breakfast","Dinner","Supper"],a:"Breakfast",w:"Breakfast gives you energy for the morning."},
+{q:"What should you drink when thirsty?",o:["Water","Cola","Nothing"],a:"Water",w:"Water is what your body really needs."},
+{q:"Eating fruits and veggies of many colours is...",o:["good for you","bad for you","boring"],a:"good for you",w:"Each colour helps your body in a different way!"},
+{q:"Which one is a fruit?",o:["Banana","Potato","Rice"],a:"Banana",w:"Bananas are fruits — sweet and healthy!"},
+{q:"Which one is a vegetable?",o:["Carrot","Mango","Cake"],a:"Carrot",w:"Carrots are vegetables — good for your eyes!"},
+{q:"Eating slowly and chewing well...",o:["helps your tummy","hurts your tummy","is silly"],a:"helps your tummy",w:"Chewing well makes food easier to digest."},
+{q:"Skipping breakfast can make you feel...",o:["tired","strong","taller"],a:"tired",w:"Your body needs morning fuel!"},
+{q:"Which helps you grow strong?",o:["Dal and vegetables","Only chocolate","Only chips"],a:"Dal and vegetables",w:"Real food builds a strong body."},
+{q:"How often should you eat sweets?",o:["Sometimes","All day","Every meal"],a:"Sometimes",w:"Sweets are treats — small and sometimes!"},
+{q:"Eating junk food every day makes your body...",o:["weak","strong","faster"],a:"weak",w:"Your body needs real food to be strong."},
+{q:"Which is best for your school tiffin?",o:["Fruit and roti","Only candy","Only chips"],a:"Fruit and roti",w:"A healthy tiffin keeps you going all day!"},
+{q:"Eggs and dal help you...",o:["grow strong","stay small","feel sleepy"],a:"grow strong",w:"They build your muscles!"},
+{q:"Which drink has LOTS of sugar?",o:["Cola","Water","Milk"],a:"Cola",w:"Fizzy drinks are full of sugar."},
+{q:"After eating sweets, you should...",o:["brush or rinse your mouth","sleep right away","eat more sweets"],a:"brush or rinse your mouth",w:"It protects your teeth from sugar!"},
+{q:"A balanced plate has...",o:["different kinds of food","only one food","only sweets"],a:"different kinds of food",w:"Different foods do different jobs for your body."},
+{q:"Wash fruits before...",o:["eating them","throwing them","hiding them"],a:"eating them",w:"Washing removes dirt and germs from fruit."},
+{q:"How many hours of sleep does a child need?",o:["About 10 hours","About 2 hours","About 20 hours"],a:"About 10 hours",w:"Sleep helps your body and brain grow."},
+{q:"How often should you brush your teeth?",o:["Twice a day","Once a week","Never"],a:"Twice a day",w:"Morning and night keeps teeth healthy!"},
+{q:"When should you wash your hands?",o:["Before eating and after playing","Only on Sunday","Never"],a:"Before eating and after playing",w:"Washing often keeps germs away."},
+{q:"A bath keeps you...",o:["clean","sleepy","hungry"],a:"clean",w:"Baths wash away dirt and germs."},
+{q:"Sleeping at the same time each night is...",o:["a good routine","a bad idea","not needed"],a:"a good routine",w:"Your body loves a rhythm!"},
+{q:"Not enough sleep makes you feel...",o:["tired and grumpy","super happy","very tall"],a:"tired and grumpy",w:"Sleep recharges your body like a battery."},
+{q:"Before bed, it is best to avoid...",o:["too much screen time","brushing teeth","story time"],a:"too much screen time",w:"Screens make it harder to fall asleep."},
+{q:"After using the toilet, you should...",o:["wash your hands","eat a snack","run away"],a:"wash your hands",w:"Always! It stops germs from spreading."},
+{q:"Cover your mouth when you...",o:["sneeze or cough","laugh","sing"],a:"sneeze or cough",w:"It stops germs flying to others!"},
+{q:"To keep hands clean, also cut your...",o:["nails","hair","sleeves"],a:"nails",w:"Germs hide under long nails!"},
+{q:"Dirty hands can carry...",o:["germs","toys","sweets"],a:"germs",w:"That's why we wash before eating."},
+{q:"Germs can make you...",o:["sick","strong","taller"],a:"sick",w:"Washing hands keeps germs away!"},
+{q:"Sleep helps your body and brain...",o:["rest and grow","shrink","stay awake"],a:"rest and grow",w:"You grow while you sleep!"},
+{q:"After waking up, what should you do?",o:["Brush your teeth","Watch TV","Skip breakfast"],a:"Brush your teeth",w:"Fresh teeth start a fresh day!"},
+{q:"Clean clothes keep you...",o:["fresh and healthy","itchy","sleepy"],a:"fresh and healthy",w:"Clean clothes are part of good hygiene."},
+{q:"How often should you drink water?",o:["Many times a day","Once a week","Never"],a:"Many times a day",w:"Your body needs water all day long!"},
+{q:"Why brush your teeth at night?",o:["To clean away germs","To stay awake","To taste toothpaste"],a:"To clean away germs",w:"Night brushing protects teeth while you sleep."},
+{q:"Going to bed very late every day is...",o:["not healthy","very healthy","funny"],a:"not healthy",w:"Your body needs proper rest every night."},
+{q:"You should rest when you feel...",o:["tired","excited","hungry"],a:"tired",w:"Rest helps your body recover."},
+{q:"After playing outside, a bath...",o:["washes away germs","makes you dirty","is not needed"],a:"washes away germs",w:"Play hard, then get clean!"},
+{q:"Too much screen time can make your...",o:["eyes tired","hair grow","feet bigger"],a:"eyes tired",w:"Give your eyes a break — look far away sometimes."},
+{q:"A good daily routine includes...",o:["sleep, food, play and learning","only games","only homework"],a:"sleep, food, play and learning",w:"A routine with everything keeps you balanced."},
+{q:"Combing your hair keeps you...",o:["neat and tidy","sleepy","hungry"],a:"neat and tidy",w:"Looking after yourself feels good!"},
+{q:"Wearing washed socks every day is...",o:["good hygiene","not needed","silly"],a:"good hygiene",w:"Fresh socks keep feet clean and happy!"},
+{q:"Drinking water in the morning...",o:["wakes up your body","makes you sleepy","is bad"],a:"wakes up your body",w:"Water gets your body going after sleep!"},
+{q:"Which one is exercise?",o:["Running and playing","Sitting all day","Lying down"],a:"Running and playing",w:"Moving your body keeps it strong."},
+{q:"Why do we exercise?",o:["To keep our body strong","To get bored","To waste time"],a:"To keep our body strong",w:"Exercise builds muscles and a strong heart!"},
+{q:"Being active means...",o:["moving your body","sitting still","sleeping all day"],a:"moving your body",w:"Walking, dancing, playing — all active!"},
+{q:"Exercise makes your heart...",o:["strong","lazy","small"],a:"strong",w:"Your heart is a muscle too!"},
+{q:"Which is better for your body?",o:["Playing outside","Screen time all day","Sitting all day"],a:"Playing outside",w:"Fresh air and moving — the best combo!"},
+{q:"Dancing is...",o:["being active","being lazy","sleeping"],a:"being active",w:"Dancing is exercise AND fun!"},
+{q:"Stretching in the morning...",o:["wakes up your body","makes you sleepy","hurts you"],a:"wakes up your body",w:"A good stretch gets your body ready!"},
+{q:"Walking to the park is...",o:["exercise","resting","eating"],a:"exercise",w:"Walking counts as moving your body!"},
+{q:"After running, you can feel your heart...",o:["beating fast","stopping","sleeping"],a:"beating fast",w:"That means your heart is working hard!"},
+{q:"Being active every day gives you...",o:["good health","bad dreams","more homework"],a:"good health",w:"A little movement every day keeps you well."},
+{q:"Which one is NOT being active?",o:["Watching TV for hours","Skipping","Playing catch"],a:"Watching TV for hours",w:"Sitting too long isn't good for your body."},
+{q:"Climbing stairs is...",o:["exercise","resting","sleeping"],a:"exercise",w:"Stairs make your legs strong!"},
+{q:"Skipping with a rope is...",o:["exercise","resting","eating"],a:"exercise",w:"Skipping is great for your heart!"},
+{q:"Exercise in the day helps you sleep...",o:["better at night","less at night","never"],a:"better at night",w:"A tired body sleeps well!"},
+{q:"Strong muscles come from...",o:["moving and playing","only sitting","only eating sweets"],a:"moving and playing",w:"Use your muscles to grow them!"},
+{q:"Playing catch with friends is...",o:["active and fun","lazy","boring"],a:"active and fun",w:"Playing together is exercise too!"},
+{q:"Riding a bicycle makes your legs...",o:["strong","weak","short"],a:"strong",w:"Pedalling is great leg exercise!"},
+{q:"How do you usually feel when you win a game?",o:["Happy 😊","Sad 😢","Sleepy 😴"],a:"Happy 😊",w:"Different things give us different feelings."},
+{q:"How might you feel if you lose your toy?",o:["Sad","Excited","Hungry"],a:"Sad",w:"It's okay to feel sad sometimes."},
+{q:"What helps when you feel angry?",o:["Take deep breaths","Shout loudly","Throw something"],a:"Take deep breaths",w:"Slow breathing calms your body down."},
+{q:"What can you do if you feel sad?",o:["Talk to someone you trust","Keep it secret forever","Get angry"],a:"Talk to someone you trust",w:"Sharing feelings helps a lot."},
+{q:"If you feel worried, you should...",o:["tell someone you trust","hide it","cry alone"],a:"tell someone you trust",w:"Grown-ups can help you feel safe."},
+{q:"Which one is a FEELING?",o:["Excited","Chair","Running"],a:"Excited",w:"Excited is a feeling word!"},
+{q:"If a friend looks sad, what can you do?",o:["Ask if they are okay","Laugh at them","Walk away"],a:"Ask if they are okay",w:"Caring for others is kind."},
+{q:"Sharing toys makes friends feel...",o:["happy","angry","bored"],a:"happy",w:"Sharing shows you care!"},
+{q:"Butterflies in your tummy before something new means you feel...",o:["a little nervous","very hungry","sleepy"],a:"a little nervous",w:"That feeling is normal — everyone gets it!"},
+{q:"Deep breaths help you...",o:["calm down","jump higher","run faster"],a:"calm down",w:"Breathe in slowly, breathe out slowly."},
+{q:"Does everyone have feelings?",o:["Yes","No","Only grown-ups"],a:"Yes",w:"All people have feelings — big and small!"},
+{q:"Is it okay to cry sometimes?",o:["Yes","No","Never"],a:"Yes",w:"Crying is a normal way to show feelings."},
+{q:"A face like this 😄 shows someone is...",o:["happy","angry","scared"],a:"happy",w:"A big smile means happy!"},
+{q:"If you feel scared at night, you can...",o:["tell your parents","hide forever","stay silent"],a:"tell your parents",w:"They will help you feel safe."},
+{q:"Saying kind words makes others feel...",o:["happy","sad","angry"],a:"happy",w:"Kind words are like little gifts!"},
+{q:"When something is hard, you can say...",o:["'I will try!'","'I give up!'","'I can't ever!'"],a:"'I will try!'",w:"Trying is how we learn and grow!"},
+{q:"Feelings can change during the day.",o:["True","False"],a:"True",w:"You can feel happy, then sad, then happy again — normal!"},
+{q:"Naming your feeling helps you...",o:["understand it","hide it","forget everything"],a:"understand it",w:"Saying 'I feel angry' is the first step to calming down."},
+{q:"A 'Risk-taker' is someone who...",o:["tries new things","does dangerous things","never tries anything"],a:"tries new things",w:"Risk-takers are brave enough to try, even if it's hard."},
+{q:"A 'Balanced' person...",o:["eats well, exercises and learns","only plays","only studies"],a:"eats well, exercises and learns",w:"Balanced people look after body AND mind."},
+{q:"Self-management means...",o:["organising yourself and your time","letting others do everything","doing nothing"],a:"organising yourself and your time",w:"It's an ATL skill — looking after yourself."},
+{q:"Thinking skills help you...",o:["solve problems","sleep more","run faster"],a:"solve problems",w:"Thinking skills help you work things out."},
+{q:"Which choice brings balance to your day?",o:["Play, study and rest each day","Study all day","Play all day"],a:"Play, study and rest each day",w:"Balance means making room for everything."},
+{q:"What does 'well-being' mean?",o:["Feeling healthy and happy","Being rich","Being tall"],a:"Feeling healthy and happy",w:"Well-being is about your body AND your feelings."},
+{q:"Our daily choices affect our...",o:["health and well-being","hair colour","height only"],a:"health and well-being",w:"That's our Central Idea this unit!"},
+{q:"Tidying your toys yourself is...",o:["self-management","someone else's job","impossible"],a:"self-management",w:"Looking after your things is an ATL skill!"},
+{q:"Packing your school bag yourself shows...",o:["self-management","laziness","luck"],a:"self-management",w:"You are organising yourself — well done!"},
+{q:"Trying a new food even if it looks different is being a...",o:["Risk-taker","Sleeper","Watcher"],a:"Risk-taker",w:"Trying new things takes courage!"},
+{q:"A balanced day has time for...",o:["work AND play AND rest","only TV","only homework"],a:"work AND play AND rest",w:"That's what balance means!"},
+{q:"Asking questions when you're curious shows...",o:["thinking skills","bad manners","laziness"],a:"thinking skills",w:"Curious minds explore the world around them!"},
+{q:"What helps you learn best?",o:["Being curious and asking questions","Never asking anything","Copying others"],a:"Being curious and asking questions",w:"Questions help your brain grow!"},
+{q:"Making good choices is...",o:["our responsibility","someone else's job","not important"],a:"our responsibility",w:"The choices we make each day matter!"},
+{q:"Solving a puzzle in different ways shows you are a...",o:["Risk-taker","Sleeper","Grumbler"],a:"Risk-taker",w:"Risk-takers solve problems in lots of ways!"},
+],
+};
+
+const rounds = [
+  { key:"english", title:"Round 1 — English", emoji:"✏️", sub:"Capital letters, nouns and sentences" },
+  { key:"math",    title:"Round 2 — Maths",   emoji:"🔢", sub:"Tens, ones and numbers to 100" },
+  { key:"uoi",     title:"Round 3 — Who We Are", emoji:"🌱", sub:"Healthy choices and how we feel" }
+];
+
+const PER_ROUND = 10;
+
+const homeScreen  = document.getElementById("home-screen");
+const roundIntro  = document.getElementById("round-intro");
+const qScreen     = document.getElementById("q-screen");
+const roundDone   = document.getElementById("round-done");
+const doneScreen  = document.getElementById("done-screen");
+const roundEmoji  = document.getElementById("round-emoji");
+const roundTitle  = document.getElementById("round-title");
+const roundSub    = document.getElementById("round-sub");
+const qSubject    = document.getElementById("q-subject");
+const qMeta       = document.getElementById("q-meta");
+const qText       = document.getElementById("q-text");
+const qOptions    = document.getElementById("q-options");
+const qFeedback   = document.getElementById("q-feedback");
+const qWhy        = document.getElementById("q-why");
+const progressFill= document.getElementById("progress-fill");
+const rdEmoji     = document.getElementById("rd-emoji");
+const rdTitle     = document.getElementById("rd-title");
+const rdScore     = document.getElementById("rd-score");
+const doneEmoji   = document.getElementById("done-emoji");
+const doneTitle   = document.getElementById("done-title");
+const scoreLine   = document.getElementById("score-line");
+
+let roundIndex = 0;
+let qIndex = 0;
+let roundScore = 0;
+let totalScore = 0;
+let currentSet = [];
+let locked = false;
+
+function shuffle(arr){
+  const c = arr.slice();
+  for (let i=c.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [c[i],c[j]] = [c[j],c[i]];
+  }
+  return c;
+}
+
+function showOnly(el){
+  [homeScreen, roundIntro, qScreen, roundDone, doneScreen].forEach(function(s){
+    s.style.display = "none";
+  });
+  el.style.display = "flex";
+}
+
+function startSession(){
+  roundIndex = 0;
+  totalScore = 0;
+  beginRound();
+}
+
+function beginRound(){
+  const r = rounds[roundIndex];
+  roundEmoji.textContent = r.emoji;
+  roundTitle.textContent = r.title;
+  roundSub.textContent = r.sub;
+  showOnly(roundIntro);
+}
+
+function runRound(){
+  const r = rounds[roundIndex];
+  currentSet = shuffle(bank[r.key]).slice(0, PER_ROUND);
+  qIndex = 0;
+  roundScore = 0;
+  showOnly(qScreen);
+  showQuestion();
+}
+
+function showQuestion(){
+  if (qIndex >= currentSet.length){ finishRound(); return; }
+  locked = false;
+  qFeedback.textContent = "";
+  qWhy.textContent = "";
+
+  const r = rounds[roundIndex];
+  const item = currentSet[qIndex];
+
+  qSubject.textContent = r.emoji + " " + r.title;
+  qMeta.textContent = "Question " + (qIndex+1) + " of " + PER_ROUND;
+  progressFill.style.width = ((qIndex / PER_ROUND) * 100) + "%";
+  qText.textContent = item.q;
+
+  qOptions.innerHTML = "";
+  shuffle(item.o).forEach(function(opt){
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = opt;
+    b.addEventListener("click", function(){ answer(b, opt, item); });
+    qOptions.appendChild(b);
+  });
+}
+
+function answer(btn, chosen, item){
+  if (locked) return;
+  locked = true;
+
+  if (chosen === item.a){
+    btn.classList.add("correct");
+    qFeedback.textContent = "✅ Yes!";
+    roundScore++;
+    totalScore++;
+  } else {
+    btn.classList.add("wrong");
+    qFeedback.textContent = "The answer is: " + item.a;
+    qOptions.querySelectorAll(".opt").forEach(function(b){
+      if (b.textContent === item.a) b.classList.add("correct");
+    });
+  }
+  qWhy.textContent = item.w;
+
+  setTimeout(function(){
+    qIndex++;
+    showQuestion();
+  }, 2600);
+}
+
+function finishRound(){
+  progressFill.style.width = "100%";
+  if (roundScore >= 9){ rdEmoji.textContent = "🏆"; rdTitle.textContent = "Brilliant!"; }
+  else if (roundScore >= 6){ rdEmoji.textContent = "🌟"; rdTitle.textContent = "Well done!"; }
+  else { rdEmoji.textContent = "🌱"; rdTitle.textContent = "Good try!"; }
+  rdScore.textContent = "You got " + roundScore + " out of " + PER_ROUND;
+
+  const btn = document.getElementById("next-round-btn");
+  btn.textContent = (roundIndex < rounds.length - 1) ? "Next Round →" : "See my score!";
+  showOnly(roundDone);
+}
+
+function nextRound(){
+  roundIndex++;
+  if (roundIndex >= rounds.length){ finishSession(); return; }
+  beginRound();
+}
+
+function finishSession(){
+  const total = rounds.length * PER_ROUND;
+  if (totalScore >= 27){ doneEmoji.textContent="🏆"; doneTitle.textContent="Superstar!"; }
+  else if (totalScore >= 18){ doneEmoji.textContent="🌟"; doneTitle.textContent="Great work!"; }
+  else { doneEmoji.textContent="🌱"; doneTitle.textContent="Keep practising!"; }
+  scoreLine.textContent = "You got " + totalScore + " out of " + total;
+  showOnly(doneScreen);
+}
+
+function goHome(){ showOnly(homeScreen); }
+
+document.getElementById("start-btn").addEventListener("click", startSession);
+document.getElementById("round-go-btn").addEventListener("click", runRound);
+document.getElementById("q-back-btn").addEventListener("click", goHome);
+document.getElementById("next-round-btn").addEventListener("click", nextRound);
+document.getElementById("rd-home-btn").addEventListener("click", goHome);
+document.getElementById("again-btn").addEventListener("click", startSession);
+document.getElementById("done-home-btn").addEventListener("click", goHome);
+</script>
+
+</body>
+</html>

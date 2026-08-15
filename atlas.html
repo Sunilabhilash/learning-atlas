@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tara's Atlas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #FFB347 0%, #FF6B6B 100%);
+      min-height: 100vh;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    #home-screen {
+      padding: 30px 20px;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      font-size: 20px;
+      margin-bottom: 30px;
+      opacity: 0.95;
+    }
+
+    #country-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .country-card {
+      background: white;
+      color: #333;
+      border: none;
+      border-radius: 20px;
+      padding: 24px 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.15s ease;
+    }
+
+    .country-card:active {
+      transform: scale(0.95);
+    }
+
+    .country-card .card-flag {
+      display: block;
+      font-size: 56px;
+      margin-bottom: 8px;
+    }
+
+    #surprise-btn,
+    #game-btn {
+      background: white;
+      color: #FF6B6B;
+      border: none;
+      border-radius: 50px;
+      padding: 18px 30px;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-top: 12px;
+    }
+
+    #surprise-btn:active,
+    #game-btn:active {
+      transform: scale(0.97);
+    }
+
+    #country-screen {
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    #back-btn,
+    #game-back-btn {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.3);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    #country-flag {
+      font-size: 140px;
+      margin: 20px 0;
+    }
+
+    #country-name {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    #country-capital {
+      font-size: 22px;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    #country-fact {
+      font-size: 22px;
+      line-height: 1.5;
+      max-width: 600px;
+      background: rgba(255,255,255,0.2);
+      padding: 24px;
+      border-radius: 20px;
+    }
+
+    #game-screen {
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    #game-progress {
+      font-size: 20px;
+      margin-top: 10px;
+      opacity: 0.9;
+    }
+
+    #game-flag {
+      font-size: 160px;
+      margin: 20px 0;
+      transition: transform 0.3s ease;
+    }
+
+    #game-flag.shake {
+      animation: shake 0.4s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-15px); }
+      75% { transform: translateX(15px); }
+    }
+
+    #game-prompt {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #game-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .game-option {
+      background: white;
+      color: #333;
+      border: none;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.15s ease;
+    }
+
+    .game-option:active {
+      transform: scale(0.95);
+    }
+
+    .game-option.correct {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .game-option.wrong {
+      background: #FF5252;
+      color: white;
+    }
+
+    #game-feedback {
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 20px;
+      min-height: 50px;
+    }
+
+    #gameover-screen {
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    #gameover-emoji {
+      font-size: 120px;
+      margin-bottom: 20px;
+    }
+
+    #gameover-title {
+      font-size: 42px;
+      margin-bottom: 12px;
+    }
+
+    #gameover-score {
+      font-size: 28px;
+      margin-bottom: 40px;
+    }
+
+    #play-again-btn,
+    #gameover-back-btn {
+      background: white;
+      color: #FF6B6B;
+      border: none;
+      border-radius: 50px;
+      padding: 18px 36px;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-bottom: 16px;
+      min-width: 250px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="home-screen">
+    <h1>Tara's Atlas</h1>
+    <p class="subtitle">Tap a country to explore!</p>
+    <div id="country-list"></div>
+    <button id="surprise-btn">Surprise me!</button>
+    <button id="game-btn">🎮 Play Flag Game!</button>
+  </div>
+
+  <div id="country-screen" style="display: none;">
+    <button id="back-btn">← Back</button>
+    <div id="country-flag"></div>
+    <h2 id="country-name"></h2>
+    <p id="country-capital"></p>
+    <p id="country-fact"></p>
+  </div>
+
+  <div id="game-screen" style="display: none;">
+    <button id="game-back-btn">← Back</button>
+    <div id="game-progress">Round 1 of 10</div>
+    <div id="game-flag"></div>
+    <p id="game-prompt">Which country is this?</p>
+    <div id="game-options"></div>
+    <div id="game-feedback"></div>
+  </div>
+
+  <div id="gameover-screen" style="display: none;">
+    <div id="gameover-emoji"></div>
+    <h2 id="gameover-title"></h2>
+    <p id="gameover-score"></p>
+    <button id="play-again-btn">Play Again!</button>
+    <button id="gameover-back-btn">← Back to Atlas</button>
+  </div>
+
+  <script>
+    const countries = [
+      { name: "India", flag: "🇮🇳", capital: "New Delhi", fact: "India invented the number zero! Without it, we couldn't even count to 10 properly." },
+      { name: "Pakistan", flag: "🇵🇰", capital: "Islamabad", fact: "Pakistan has K2, the world's second-tallest mountain — even harder to climb than Everest!" },
+      { name: "Bangladesh", flag: "🇧🇩", capital: "Dhaka", fact: "Bangladesh has the world's largest mangrove forest, home to the Royal Bengal Tiger!" },
+      { name: "Nepal", flag: "🇳🇵", capital: "Kathmandu", fact: "Nepal is the only country in the world with a flag that isn't a rectangle — it's two triangles!" },
+      { name: "Bhutan", flag: "🇧🇹", capital: "Thimphu", fact: "Bhutan measures happiness instead of money. They call it 'Gross National Happiness'!" },
+      { name: "Sri Lanka", flag: "🇱🇰", capital: "Colombo", fact: "Sri Lanka is shaped like a teardrop and grows some of the world's best tea and cinnamon!" },
+      { name: "Myanmar", flag: "🇲🇲", capital: "Naypyidaw", fact: "Myanmar has more than 10,000 golden Buddhist temples — some sparkle for miles!" },
+      { name: "Australia", flag: "🇦🇺", capital: "Canberra", fact: "Australia is home to kangaroos that hop instead of run, and wombats that poop in the shape of cubes!" },
+      { name: "New Zealand", flag: "🇳🇿", capital: "Wellington", fact: "New Zealand has more sheep than people — about 5 sheep for every one person!" },
+      { name: "USA", flag: "🇺🇸", capital: "Washington, D.C.", fact: "The USA has 50 states, and each has its own flag, bird, and even its own state cookie!" },
+      { name: "UK", flag: "🇬🇧", capital: "London", fact: "The UK has a Queen's Guard that stands so still, tourists try to make them laugh — they can't!" },
+      { name: "China", flag: "🇨🇳", capital: "Beijing", fact: "The Great Wall of China is so long, you'd have to walk for a whole year without sleeping to cross it!" },
+      { name: "Russia", flag: "🇷🇺", capital: "Moscow", fact: "Russia is so big it spans 11 time zones — when it's morning on one side, it's night on the other!" },
+      { name: "Germany", flag: "🇩🇪", capital: "Berlin", fact: "Germany invented gummy bears, and they eat more bread than any other country in the world!" },
+      { name: "France", flag: "🇫🇷", capital: "Paris", fact: "The Eiffel Tower grows 6 inches taller in summer because the metal expands when it gets hot!" },
+      { name: "Japan", flag: "🇯🇵", capital: "Tokyo", fact: "Japan has more than 6,800 islands! That's like having a different island for every day for 18 years." },
+      { name: "Canada", flag: "🇨🇦", capital: "Ottawa", fact: "Canada has more lakes than the rest of the world combined. That's a LOT of swimming!" },
+      { name: "Italy", flag: "🇮🇹", capital: "Rome", fact: "Italy is shaped like a boot, and it's the country that invented pizza AND ice cream!" },
+      { name: "Brazil", flag: "🇧🇷", capital: "Brasília", fact: "The Amazon rainforest in Brazil is so big, it makes its own rain. Trees breathe out water and create clouds!" },
+      { name: "Singapore", flag: "🇸🇬", capital: "Singapore", fact: "Singapore is so clean that chewing gum is banned — you can't buy it in most shops!" },
+      { name: "Indonesia", flag: "🇮🇩", capital: "Jakarta", fact: "Indonesia has 17,000 islands and 130 active volcanoes — more than any other country!" },
+      { name: "South Korea", flag: "🇰🇷", capital: "Seoul", fact: "South Koreans consider you one year old at birth — everyone gets a birthday together at New Year!" },
+      { name: "Thailand", flag: "🇹🇭", capital: "Bangkok", fact: "Thailand is the only country in Southeast Asia that was never ruled by another country. They love their freedom!" },
+      { name: "Vietnam", flag: "🇻🇳", capital: "Hanoi", fact: "Vietnam grows so much coffee that it's the second-biggest coffee producer in the world!" },
+      { name: "Saudi Arabia", flag: "🇸🇦", capital: "Riyadh", fact: "Saudi Arabia has no rivers at all — but it has a giant sand desert bigger than most countries!" },
+      { name: "UAE", flag: "🇦🇪", capital: "Abu Dhabi", fact: "The UAE built the world's tallest building — so tall you can see the sunset twice from different floors!" },
+      { name: "Israel", flag: "🇮🇱", capital: "Jerusalem", fact: "Israel has the Dead Sea, which is so salty you float on top without even trying to swim!" },
+      { name: "Spain", flag: "🇪🇸", capital: "Madrid", fact: "Spain has a festival where people throw tomatoes at each other — 150,000 tomatoes in one day!" },
+      { name: "Switzerland", flag: "🇨🇭", capital: "Bern", fact: "Switzerland is where chocolate bars were invented, and they eat more chocolate than anyone in the world!" },
+      { name: "Netherlands", flag: "🇳🇱", capital: "Amsterdam", fact: "The Netherlands has more bicycles than people! And half the country is below sea level." },
+      { name: "Ukraine", flag: "🇺🇦", capital: "Kyiv", fact: "Ukraine has some of the richest soil in the world — it grows so much wheat it's called Europe's breadbasket!" },
+      { name: "Egypt", flag: "🇪🇬", capital: "Cairo", fact: "The Great Pyramid of Giza is 4,500 years old — older than your great-great-great-great (lots of greats!) grandparents." },
+      { name: "South Africa", flag: "🇿🇦", capital: "Pretoria", fact: "South Africa has THREE capital cities, not one. Imagine having three school buildings instead of one!" },
+      { name: "Kenya", flag: "🇰🇪", capital: "Nairobi", fact: "Kenya has lions, elephants, and giraffes living wild — and the world's fastest runners come from there too!" },
+      { name: "Mexico", flag: "🇲🇽", capital: "Mexico City", fact: "Chocolate was invented in Mexico over 3,000 years ago. The first chocolate was a bitter drink, not a sweet bar!" },
+      { name: "Argentina", flag: "🇦🇷", capital: "Buenos Aires", fact: "Argentina has penguins AND tropical jungles in the same country. From snow to sun in one trip!" },
+      { name: "Colombia", flag: "🇨🇴", capital: "Bogotá", fact: "Colombia has pink dolphins that swim in the Amazon River — and they're actually PINK!" },
+      { name: "Peru", flag: "🇵🇪", capital: "Lima", fact: "Peru has Machu Picchu, an ancient city hidden in the clouds high up in the mountains!" },
+      { name: "Chile", flag: "🇨🇱", capital: "Santiago", fact: "Chile is so long and thin, it stretches like a ribbon — the driest desert AND glaciers, all in one country!" },
+      { name: "Iceland", flag: "🇮🇸", capital: "Reykjavík", fact: "Iceland has volcanoes AND glaciers. You can see fire and ice in the same place!" }
+    ];
+
+    const homeScreen = document.getElementById("home-screen");
+    const countryScreen = document.getElementById("country-screen");
+    const countryList = document.getElementById("country-list");
+    const flagEl = document.getElementById("country-flag");
+    const nameEl = document.getElementById("country-name");
+    const capitalEl = document.getElementById("country-capital");
+    const factEl = document.getElementById("country-fact");
+    const backBtn = document.getElementById("back-btn");
+    const surpriseBtn = document.getElementById("surprise-btn");
+
+    function buildCountryList() {
+      countries.forEach(function(country) {
+        const card = document.createElement("button");
+        card.className = "country-card";
+        card.innerHTML = '<span class="card-flag">' + country.flag + '</span>' + country.name;
+        card.addEventListener("click", function() {
+          showCountry(country);
+        });
+        countryList.appendChild(card);
+      });
+    }
+
+    function showCountry(country) {
+      flagEl.textContent = country.flag;
+      nameEl.textContent = country.name;
+      capitalEl.textContent = "Capital: " + country.capital;
+      factEl.textContent = country.fact;
+      homeScreen.style.display = "none";
+      countryScreen.style.display = "flex";
+    }
+
+    function goHome() {
+      countryScreen.style.display = "none";
+      gameScreen.style.display = "none";
+      gameoverScreen.style.display = "none";
+      homeScreen.style.display = "flex";
+    }
+
+    function surpriseMe() {
+      const randomIndex = Math.floor(Math.random() * countries.length);
+      showCountry(countries[randomIndex]);
+    }
+
+    backBtn.addEventListener("click", goHome);
+    surpriseBtn.addEventListener("click", surpriseMe);
+    buildCountryList();
+
+    const gameScreen = document.getElementById("game-screen");
+    const gameoverScreen = document.getElementById("gameover-screen");
+    const gameBtn = document.getElementById("game-btn");
+    const gameBackBtn = document.getElementById("game-back-btn");
+    const gameProgress = document.getElementById("game-progress");
+    const gameFlag = document.getElementById("game-flag");
+    const gameOptions = document.getElementById("game-options");
+    const gameFeedback = document.getElementById("game-feedback");
+    const gameoverEmoji = document.getElementById("gameover-emoji");
+    const gameoverTitle = document.getElementById("gameover-title");
+    const gameoverScore = document.getElementById("gameover-score");
+    const playAgainBtn = document.getElementById("play-again-btn");
+    const gameoverBackBtn = document.getElementById("gameover-back-btn");
+
+    const TOTAL_ROUNDS = 10;
+    let currentRound = 0;
+    let score = 0;
+    let gameCountries = [];
+    let answerLocked = false;
+
+    function shuffle(array) {
+      const copy = array.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function startGame() {
+      currentRound = 0;
+      score = 0;
+      gameCountries = shuffle(countries).slice(0, TOTAL_ROUNDS);
+      homeScreen.style.display = "none";
+      countryScreen.style.display = "none";
+      gameoverScreen.style.display = "none";
+      gameScreen.style.display = "flex";
+      nextRound();
+    }
+
+    function nextRound() {
+      if (currentRound >= TOTAL_ROUNDS) {
+        showGameOver();
+        return;
+      }
+      answerLocked = false;
+      gameFeedback.textContent = "";
+      gameFlag.classList.remove("shake");
+
+      const correctCountry = gameCountries[currentRound];
+      gameProgress.textContent = "Round " + (currentRound + 1) + " of " + TOTAL_ROUNDS;
+      gameFlag.textContent = correctCountry.flag;
+
+      const wrongOptions = shuffle(countries.filter(function(c) {
+        return c.name !== correctCountry.name;
+      })).slice(0, 3);
+      const allOptions = shuffle(wrongOptions.concat([correctCountry]));
+
+      gameOptions.innerHTML = "";
+      allOptions.forEach(function(country) {
+        const btn = document.createElement("button");
+        btn.className = "game-option";
+        btn.textContent = country.name;
+        btn.addEventListener("click", function() {
+          handleAnswer(btn, country, correctCountry);
+        });
+        gameOptions.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(button, chosen, correct) {
+      if (answerLocked) return;
+      answerLocked = true;
+
+      if (chosen.name === correct.name) {
+        button.classList.add("correct");
+        gameFeedback.textContent = "✅ YES!";
+        score++;
+      } else {
+        button.classList.add("wrong");
+        gameFlag.classList.add("shake");
+        gameFeedback.textContent = "❌ It was " + correct.name;
+        const buttons = gameOptions.querySelectorAll(".game-option");
+        buttons.forEach(function(b) {
+          if (b.textContent === correct.name) {
+            b.classList.add("correct");
+          }
+        });
+      }
+
+      setTimeout(function() {
+        currentRound++;
+        nextRound();
+      }, 1800);
+    }
+
+    function showGameOver() {
+      gameScreen.style.display = "none";
+      gameoverScreen.style.display = "flex";
+
+      if (score === TOTAL_ROUNDS) {
+        gameoverEmoji.textContent = "🏆";
+        gameoverTitle.textContent = "Perfect score!";
+      } else if (score >= 7) {
+        gameoverEmoji.textContent = "🌟";
+        gameoverTitle.textContent = "Great job!";
+      } else if (score >= 4) {
+        gameoverEmoji.textContent = "🌱";
+        gameoverTitle.textContent = "Keep exploring!";
+      } else {
+        gameoverEmoji.textContent = "🌱";
+        gameoverTitle.textContent = "Try again!";
+      }
+      gameoverScore.textContent = "You got " + score + " out of " + TOTAL_ROUNDS;
+    }
+
+    gameBtn.addEventListener("click", startGame);
+    gameBackBtn.addEventListener("click", goHome);
+    playAgainBtn.addEventListener("click", startGame);
+    gameoverBackBtn.addEventListener("click", goHome);
+  </script>
+
+</body>
+</html>

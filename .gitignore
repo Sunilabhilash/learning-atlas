@@ -1,0 +1,51 @@
+# ============================================
+# SECRETS — never commit these
+# ============================================
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+config.local.json
+credentials.json
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.ppk
+
+# API keys and tokens
+*api_key*
+*apikey*
+*token*
+.anthropic
+
+# ============================================
+# PERSONAL DATA — Tara's learning records
+# ============================================
+profiles/
+*-skills.json
+session-logs/
+*.log
+
+# ============================================
+# GENERATED / TEMPORARY
+# ============================================
+__pycache__/
+*.pyc
+venv/
+.venv/
+node_modules/
+*.tmp
+*.save
+*.bak
+*~
+
+# ============================================
+# OS JUNK
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
