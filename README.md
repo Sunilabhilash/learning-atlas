@@ -2,20 +2,20 @@
 
 **A Raspberry Pi learning device I'm building for my six-year-old daughter — twenty years after my last commit.**
 
----
+\---
 
 ## What this is
 
 A touchscreen learning device that sits on a desk at home. My daughter taps it. Right now it does two things:
 
-- **Flag Game** — 40 countries. Tap a flag, learn the capital and one fact. Then a ten-round quiz.
-- **Brain Quest** — 300 questions drawn from her actual Grade 1 syllabus, across English, Maths, and her IB unit of inquiry.
+* **Flag Game** — 40 countries. Tap a flag, learn the capital and one fact. Then a ten-round quiz.
+* **Brain Quest** — 300 questions drawn from her actual Grade 1 syllabus, across English, Maths, and her IB unit of inquiry.
 
 It runs on a Raspberry Pi 5 with a 7-inch touchscreen, in a red plastic case, next to a plant.
 
 She played the flag game five times in a row the first evening. That's the only metric I care about so far.
 
----
+\---
 
 ## Why I'm doing this
 
@@ -29,21 +29,21 @@ I wanted that gap closed. Not to become an engineer — to become the kind of pr
 
 Building something my kid actually uses turned out to be a much better forcing function than a course.
 
----
+\---
 
 ## What's actually built
 
-| | Status |
-|---|---|
-| Raspberry Pi 5 assembled, OS installed, headless setup over SSH | Done |
-| 7" touchscreen working, kiosk mode, touch scrolling | Done |
-| Flag Game — 40 countries, quiz mode, scoring | Live |
-| Brain Quest — 300 curriculum questions, 3 rounds of 10 | Live |
-| Version control and this repo | Done (finally) |
-| Weekly pipeline: school PDF → AI-generated questions | Designed, not built |
-| Adaptive difficulty with guess detection | Designed, not built |
+||Status|
+|-|-|
+|Raspberry Pi 5 assembled, OS installed, headless setup over SSH|Done|
+|7" touchscreen working, kiosk mode, touch scrolling|Done|
+|Flag Game — 40 countries, quiz mode, scoring|Live|
+|Brain Quest — 300 curriculum questions, 3 rounds of 10|Live|
+|Version control and this repo|Done (finally)|
+|Weekly pipeline: school PDF → AI-generated questions|Designed, not built|
+|Adaptive difficulty with guess detection|Designed, not built|
 
----
+\---
 
 ## How it's being built
 
@@ -63,34 +63,34 @@ What I've found: **the code is the cheap part now.** The expensive parts are kno
 
 Two examples of the machine being confidently wrong, both of which I caught and corrected:
 
-- It told me a heatsink wasn't part of my case kit. The box said otherwise, in print.
-- It then told me I'd stuck that heatsink on the wrong chip and had me trying to prise it off a live board. I found a reference photo. I'd placed it correctly.
+* It told me a heatsink wasn't part of my case kit. The box said otherwise, in print.
+* It then told me I'd stuck that heatsink on the wrong chip and had me trying to prise it off a live board. I found a reference photo. I'd placed it correctly.
 
 Both times I had to push back on something delivered with total confidence. That instinct — knowing when to trust the expert in the room — is the thing I actually came here to build.
 
----
+\---
 
 ## What it took (the unglamorous log)
 
 Because most repos delete this part, and it's the part that would have helped me:
 
-- Forgot the Pi password within a week. Reflashed the whole SD card.
-- Lost twenty minutes to a file saved as `study.html.save` instead of `study.html`.
-- A system upgrade stalled at 22%, got killed by a stray Ctrl+C, and had to be restarted with output redirected to a log so it would survive a dropped SSH session.
-- The SD card adapter's write-protect switch was in the wrong position and reported the card as read-only. Ten minutes.
-- Ninety minutes of network debugging tonight — to push three files.
-- `.local` hostname resolution has never worked from my laptop. I use the IP address like a caveman and it's fine.
+* Forgot the Pi password within a week. Reflashed the whole SD card.
+* Lost twenty minutes to a file saved as `study.html.save` instead of `study.html`.
+* A system upgrade stalled at 22%, got killed by a stray Ctrl+C, and had to be restarted with output redirected to a log so it would survive a dropped SSH session.
+* The SD card adapter's write-protect switch was in the wrong position and reported the card as read-only. Ten minutes.
+* Ninety minutes of network debugging tonight — to push three files.
+* `.local` hostname resolution has never worked from my laptop. I use the IP address like a caveman and it's fine.
 
 None of this appears in tutorials. All of it is what building is.
 
----
+\---
 
 ## Architecture
 
 Deliberately simple. Two self-contained HTML files, each with structure, styling, data and logic in one place. Chromium runs them full-screen in kiosk mode on boot.
 
 ```
-~/atlas/
+\~/atlas/
 ├── atlas.html     # Flag Game — 40 countries
 ├── study.html     # Brain Quest — 300 questions
 └── .gitignore
@@ -102,50 +102,64 @@ This is not how it should be built long-term. Data and code are welded together 
 
 The current design is naive on purpose. It works, she uses it, and it taught me precisely which parts hurt. That's a better spec than anything I'd have written upfront.
 
----
+\---
 
 ## Hardware
 
-| Component | Notes |
-|---|---|
-| Raspberry Pi 5 (8GB) | The brain |
-| Official Pi 5 case with fan | Includes a heatsink. It goes on the CPU. |
-| Waveshare 7" HDMI touchscreen | 1024x600, HDMI for video + USB for touch |
-| 27W USB-C power supply | Use the official one |
-| 128GB microSD | Reflashed more times than I'd like |
-| Micro HDMI to HDMI adapter | The Pi 5 has micro HDMI. My cable didn't. |
+|Component|Notes|
+|-|-|
+|Raspberry Pi 5 (8GB)|The brain|
+|Official Pi 5 case with fan|Includes a heatsink. It goes on the CPU.|
+|Waveshare 7" HDMI touchscreen|1024x600, HDMI for video + USB for touch|
+|27W USB-C power supply|Use the official one|
+|128GB microSD|Reflashed more times than I'd like|
+|Micro HDMI to HDMI adapter|The Pi 5 has micro HDMI. My cable didn't.|
 
----
+\---
 
 ## Running it
 
 ```bash
 # Flag Game
-DISPLAY=:0 chromium --kiosk --password-store=basic --touch-events=enabled \
+DISPLAY=:0 chromium --kiosk --password-store=basic --touch-events=enabled \\
   file:///home/sunil/atlas/atlas.html
 
 # Brain Quest
-DISPLAY=:0 chromium --kiosk --password-store=basic --touch-events=enabled \
+DISPLAY=:0 chromium --kiosk --password-store=basic --touch-events=enabled \\
   file:///home/sunil/atlas/study.html
 ```
 
 `--touch-events=enabled` is not optional. Without it, touch drag doesn't scroll and the only way to move down the page is the scrollbar — which a six-year-old will not find.
 
----
+\---
 
 ## Roadmap
 
-**Next**
-- Home screen so she can switch apps herself, without me SSH-ing in
-- Weekly pipeline: upload school PDF → generate questions → review → publish
-- Adaptive difficulty, with confirmation across days to catch guessing
 
-**Later**
-- Text-to-speech, so she can practise without me reading the questions
-- Question formats beyond multiple choice — ordering, sorting, typing
-- Thermal printer, LEDs, an LED world map on her wall
 
----
+**Six phases, from removing myself as the operator through to voice and**
+
+**non-multiple-choice question formats.**
+
+
+
+**\*\*Phase 1\*\* — Home screen, auto-launch on boot, speaker and text-to-speech**
+
+**\*\*Phase 2\*\* — Weekly pipeline: school PDF → generated questions → review → publish**
+
+**\*\*Phase 3\*\* — Python service on the Pi, so the app can save state**
+
+**\*\*Phase 4\*\* — Adaptive difficulty, with guess detection across days**
+
+**\*\*Phase 5\*\* — Question formats beyond multiple choice**
+
+**\*\*Phase 6\*\* — Microphone, better voices, revision mode**
+
+
+
+**Full detail, including what's deliberately \*not\* being built and how content**
+
+**safety is handled: \*\*\[ROADMAP.md](ROADMAP.md)\*\***---
 
 ## What I've learned so far
 
@@ -157,7 +171,7 @@ DISPLAY=:0 chromium --kiosk --password-store=basic --touch-events=enabled \
 
 **A real user beats a spec.** She found problems in ten minutes that I wouldn't have found in ten hours — that touch scrolling didn't work, that she'd replay to farm her score rather than to learn.
 
----
+\---
 
 ## A note on this being public
 
@@ -165,6 +179,7 @@ This is a learning log as much as a project. The code is amateur in places, the 
 
 That's the point. Twenty years is a long time to go without shipping anything yourself.
 
----
+\---
 
 *Built in Mumbai, on weekends, with a six-year-old as the QA team.*
+
