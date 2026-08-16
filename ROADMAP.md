@@ -42,7 +42,19 @@ Every question tagged with a topic and subtopic. Two levels: nineteen topics for
 
 Without this the best the device can say is "English: 7 out of 10" — which the score screen already shows and which tells me nothing. With it, the device can say "capitals are solid, common nouns are not."
 
-This is also the foundation for everything in Phase 4, so it isn't throwaway work.
+The vocabulary, drawn from her actual syllabus:
+
+| Subject | Topics |
+|---|---|
+| **English** | Capitals · Nouns · Punctuation · Sentences · Spellings |
+| **Maths** | Number bonds · Place value · Number order · Comparing · Addition · Counting patterns · Time |
+| **Who We Are** | Daily routines · Healthy food · Hygiene · Sleep and rest · Exercise · Feelings · Learner profile |
+
+Each topic breaks into three to six subtopics — *Capitals* splits into calendar words, holidays, I by myself, people and places, sentence starts, and counting capitals in a sentence.
+
+The grain size is deliberate. Split too fine and each topic gets two data points a week, which is noise. Nineteen topics across thirty questions a session gives roughly five to eight answers per topic per week — enough to trust.
+
+This is also the foundation for everything in Phase 5, so it isn't throwaway work.
 
 **1.2 Storage**
 Results saved in the browser's own storage on the Pi. Accumulates across sessions. Crude — it lives inside Chromium and would be lost if browser data were cleared — but it costs one session instead of ten and produces real data within a week.
